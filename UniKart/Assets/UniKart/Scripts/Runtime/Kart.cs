@@ -118,11 +118,32 @@ namespace UniKart
         private void OnCollisionEnter(Collision collision)
         {
             _groundDetector.RegisterCollision(collision);
+            ReduceHop(collision);
         }
 
         private void OnCollisionStay(Collision collision)
         {
             _groundDetector.RegisterCollision(collision);
+            ReduceHop(collision);
+        }
+
+        private void ReduceHop(Collision collision)
+        {
+            foreach (var contact in collision.contacts)
+            {
+                if (contact.thisCollider != Collider)
+                {
+                    continue;
+                }
+
+                var upImpulse = Vector3.Dot(_lastGroundNormal, contact.impulse);
+                var threshold = 30;
+                var multiplier = 1.0f;
+                if (upImpulse > threshold)
+                {
+                    Rigidbody.AddForce(-_lastGroundNormal * (upImpulse - threshold) * multiplier, ForceMode.Impulse);
+                }
+            }
         }
     }
 
