@@ -33,7 +33,7 @@ namespace UniKart
             var deltaTime = Time.time - Time.fixedTime;
             var t = deltaTime / Time.fixedDeltaTime;
             var position = Vector3.LerpUnclamped(_lastRigPosition, _rigidbody.position, t);
-            var rotation = Quaternion.LerpUnclamped(_lastRigRotation, _rigidbody.rotation, t);
+            var rotation = Quaternion.SlerpUnclamped(_lastRigRotation, _rigidbody.rotation, t);
             _transform.position = position;
             _transform.rotation = rotation;
 

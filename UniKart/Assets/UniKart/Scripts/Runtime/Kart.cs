@@ -19,6 +19,8 @@ namespace UniKart
 
         public float AngleSpeed = 90f;
 
+        public float SlopeAngleLimit = 45f;
+
         private KartEngine _engine;
 
         private KartGroundDetector _groundDetector;
@@ -109,6 +111,8 @@ namespace UniKart
                 _isFixedUpdateFrame = false;
                 AfterFixedUpdate();
             }
+
+            _groundDetector.SlopeAngleLimit = SlopeAngleLimit;
         }
 
         private void OnCollisionEnter(Collision collision)
@@ -124,6 +128,10 @@ namespace UniKart
 
     public class KartGroundDetector
     {
+        public float SlopeAngleLimit { get; set; } = 45f;
+
+        public Vector3 BaseNormal { get; set; } = Vector3.up;
+
         private readonly Collider _collider;
         private int _contactCount;
         private Vector3 _totalNormals;
@@ -141,8 +149,15 @@ namespace UniKart
             var v = collision.rigidbody ? collision.rigidbody.linearVelocity : Vector3.zero;
             foreach (var contact in collision.contacts)
             {
+                var normal = contact.normal;
+                var angle = Vector3.Angle(BaseNormal, normal);
+                if (angle > SlopeAngleLimit)
+                {
+                    continue;
+                }
+
                 _contactCount++;
-                _totalNormals += contact.normal;
+                _totalNormals += normal;
                 _totalVelocities += v;
             }
         }
