@@ -33,6 +33,8 @@ namespace UniKart
 
         private Vector3 _lastGroundNormal;
 
+        public Vector3 GroundNormal => _lastGroundNormal;
+
         private bool _isFixedUpdateFrame;
 
         private FrictionCalculator _forwardFrictionCalc = new FrictionCalculator();
