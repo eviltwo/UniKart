@@ -23,6 +23,8 @@ namespace UniKart
 
         public float SlopeAngleLimit = 45f;
 
+        public Vector3 Gravity = Vector3.up * -9.81f;
+
         private KartEngine _engine;
 
         private KartGroundDetector _groundDetector;
@@ -56,6 +58,11 @@ namespace UniKart
             var brake = KartInput.GetBrake();
             var steering = KartInput.GetSteering();
             var drift = KartInput.GetDrift();
+
+            if (!Rigidbody.useGravity)
+            {
+                Rigidbody.AddForce(Gravity, ForceMode.Acceleration);
+            }
 
             var grounded = _groundDetector.ContactCount > 0;
             var groundNormal = _groundDetector.GetGroundNormal();
