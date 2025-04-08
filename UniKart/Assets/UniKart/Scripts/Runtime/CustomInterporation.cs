@@ -9,6 +9,7 @@ namespace UniKart
         private Rigidbody _rigidbody;
 
         private Vector3 _lastRigPosition;
+        private Vector3 _lastRigVelocity;
         private Quaternion _lastRigRotation;
 
         private void OnEnable()
@@ -20,6 +21,7 @@ namespace UniKart
         private void FixedUpdate()
         {
             _lastRigPosition = _rigidbody.position;
+            _lastRigVelocity = _rigidbody.linearVelocity;
             _lastRigRotation = _rigidbody.rotation;
         }
 
@@ -32,7 +34,8 @@ namespace UniKart
         {
             var deltaTime = Time.time - Time.fixedTime;
             var t = deltaTime / Time.fixedDeltaTime;
-            var position = Vector3.LerpUnclamped(_lastRigPosition, _rigidbody.position, t);
+            var a = (_rigidbody.linearVelocity - _lastRigVelocity) / Time.fixedDeltaTime;
+            var position = _lastRigPosition + _lastRigVelocity * deltaTime + 0.5f * a * deltaTime * deltaTime;
             var rotation = Quaternion.SlerpUnclamped(_lastRigRotation, _rigidbody.rotation, t);
             _transform.position = position;
             _transform.rotation = rotation;
