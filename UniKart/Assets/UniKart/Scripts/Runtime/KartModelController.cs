@@ -12,6 +12,20 @@ namespace UniKart
 
         public Transform Body;
 
+        public float BodyVelocityModifier = 1f;
+
+        public float BodySpringLength = 0.5f;
+
+        public float BodySpringLengthMin = 0.5f;
+
+        public float BodySpringLengthMax = 1.5f;
+
+        public float BodySpringAngleMax = 30f;
+
+        public float BodySpringStrength = 0.5f;
+
+        public float BodySpringDamper = 0.5f;
+
         [System.Serializable]
         public class WheelInfo
         {
@@ -28,13 +42,22 @@ namespace UniKart
 
         private Quaternion _animatedRootRotation = Quaternion.identity;
 
-        private float _bodySteeringAngle;
+        private float _rootSteeringAngle;
 
         private float _wheelSteeringAngle;
 
+        private Vector3 _defaultBodyLocalPosition;
+
+        private Vector3 _bodyPivot;
+
+        private Vector3 _bodyLastVelocity;
+
+        private Vector3 _bodyVelocity;
+
         private void Start()
         {
-            _defaultLocalRotation = Body.localRotation;
+            _defaultLocalRotation = Root.localRotation;
+            _defaultBodyLocalPosition = Body.localPosition;
         }
 
         private void LateUpdate()
@@ -47,9 +70,9 @@ namespace UniKart
             var hrzFitRot = Quaternion.AngleAxis(hrzAngle, Kart.GroundNormal);
             _animatedRootRotation = hrzFitRot * _animatedRootRotation;
             _animatedRootRotation = Quaternion.Lerp(_animatedRootRotation, currentRot, RootRotationSpeed * Time.deltaTime);
-            _bodySteeringAngle = Mathf.MoveTowards(_bodySteeringAngle, 0, 40 * Time.deltaTime);
-            _bodySteeringAngle = Mathf.MoveTowards(_bodySteeringAngle, Kart.KartInput.GetSteering() * 10, 90 * Time.deltaTime);
-            var steeringRot = Quaternion.AngleAxis(_bodySteeringAngle, Vector3.up);
+            _rootSteeringAngle = Mathf.MoveTowards(_rootSteeringAngle, 0, 40 * Time.deltaTime);
+            _rootSteeringAngle = Mathf.MoveTowards(_rootSteeringAngle, Kart.KartInput.GetSteering() * 10, 90 * Time.deltaTime);
+            var steeringRot = Quaternion.AngleAxis(_rootSteeringAngle, Vector3.up);
             Root.rotation = _animatedRootRotation * steeringRot;
 
             var sphereCollider = Kart.Collider;
@@ -94,6 +117,42 @@ namespace UniKart
                         wheel.Model.position = defaultPos;
                     }
                 }
+            }
+
+            // Body animation
+            {
+
+                var worldVelocity = Kart.Rigidbody.GetPointVelocity(Vector3.up * BodySpringLength);
+                var velocityDiff = worldVelocity - _bodyLastVelocity;
+                _bodyLastVelocity = worldVelocity;
+                var localVelocityDiff = Quaternion.Inverse(Body.parent.rotation) * velocityDiff * BodyVelocityModifier;
+                _bodyVelocity -= localVelocityDiff;
+
+                // Spring
+                var springForce = (Vector3.up * BodySpringLength - _bodyPivot) * BodySpringStrength;
+                _bodyVelocity += springForce * Time.deltaTime;
+
+                // Calculate position
+                _bodyPivot += _bodyVelocity * Time.deltaTime;
+
+                // Dumping
+                _bodyVelocity = Vector3.Lerp(_bodyVelocity, Vector3.zero, BodySpringDamper * Time.deltaTime);
+
+                // Clamp angles
+                var angle = Vector3.Angle(Vector3.up, _bodyPivot);
+                if (angle > BodySpringAngleMax)
+                {
+                    var length = _bodyPivot.magnitude;
+                    _bodyPivot = Vector3.RotateTowards(Vector3.up, _bodyPivot.normalized, BodySpringAngleMax * Mathf.Deg2Rad, 0) * length;
+                }
+
+                // Clamp length
+                var newLength = Mathf.Clamp(_bodyPivot.magnitude, BodySpringLengthMin, BodySpringLengthMax);
+                _bodyPivot = _bodyPivot.normalized * newLength;
+
+                // Apply
+                Body.localPosition = _bodyPivot;
+                Body.localRotation = Quaternion.FromToRotation(Vector3.up, _bodyPivot);
             }
         }
 

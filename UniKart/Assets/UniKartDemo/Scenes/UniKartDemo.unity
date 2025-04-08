@@ -1471,7 +1471,7 @@ PrefabInstance:
       objectReference: {fileID: 0}
     - target: {fileID: -4819223349682164798, guid: bf3afdc0829e92347bbdd7a0d01e89a5, type: 3}
       propertyPath: m_IsActive
-      value: 0
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: -825074972063419734, guid: bf3afdc0829e92347bbdd7a0d01e89a5, type: 3}
       propertyPath: m_LocalPosition.x
@@ -1518,6 +1518,13 @@ MonoBehaviour:
   Root: {fileID: 1793544891}
   RootRotationSpeed: 10
   Body: {fileID: 1241775455}
+  BodyVelocityModifier: 0.5
+  BodySpringLength: 0.3
+  BodySpringLengthMin: 0.1
+  BodySpringLengthMax: 1.4
+  BodySpringAngleMax: 5
+  BodySpringStrength: 100
+  BodySpringDamper: 10
   Wheels:
   - Model: {fileID: 1991496819}
     Radius: 0.3
