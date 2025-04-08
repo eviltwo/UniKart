@@ -79,7 +79,6 @@ namespace UniKart
                 var forward = Rigidbody.rotation * Vector3.forward;
                 var relativeForwardSpeed = Vector3.Dot(relativeVelocity, forward);
                 var speedDiff = relativeForwardSpeed - engineSpeed;
-                var diffForce = forward * (speedDiff * WheelDinamicFriction);
                 _forwardFrictionCalc.DynamicFriction = WheelDinamicFriction;
                 _forwardFrictionCalc.StaticFriction = WheelStaticFriction;
                 _forwardFrictionCalc.Update(speedDiff);
@@ -90,7 +89,6 @@ namespace UniKart
                 var sideways = Rigidbody.rotation * Vector3.right;
                 var relativeSidewaysSpeed = Vector3.Dot(relativeVelocity, sideways);
                 var sidewaysDiff = relativeSidewaysSpeed;
-                var sidewaysDiffForce = sideways * (sidewaysDiff * WheelDinamicFriction);
                 _sidewaysFrictionCalc.DynamicFriction = WheelDinamicFriction;
                 _sidewaysFrictionCalc.StaticFriction = WheelStaticFriction;
                 _sidewaysFrictionCalc.Update(sidewaysDiff);
