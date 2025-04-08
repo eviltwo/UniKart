@@ -1523,22 +1523,22 @@ MonoBehaviour:
     Radius: 0.3
     IsSteerable: 1
     IsDriveable: 1
-    IsForward: 1
+    IsFront: 1
   - Model: {fileID: 247142984}
     Radius: 0.3
     IsSteerable: 1
     IsDriveable: 1
-    IsForward: 1
+    IsFront: 1
   - Model: {fileID: 1950677211}
     Radius: 0.3
     IsSteerable: 0
     IsDriveable: 1
-    IsForward: 0
+    IsFront: 0
   - Model: {fileID: 1035842491}
     Radius: 0.3
     IsSteerable: 0
     IsDriveable: 1
-    IsForward: 0
+    IsFront: 0
 --- !u!4 &1950677211 stripped
 Transform:
   m_CorrespondingSourceObject: {fileID: -825074972063419734, guid: bf3afdc0829e92347bbdd7a0d01e89a5, type: 3}

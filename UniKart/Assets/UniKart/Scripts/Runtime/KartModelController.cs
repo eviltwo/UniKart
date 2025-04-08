@@ -19,7 +19,7 @@ namespace UniKart
             public float Radius;
             public bool IsSteerable;
             public bool IsDriveable;
-            public bool IsForward;
+            public bool IsFront;
         }
 
         public WheelInfo[] Wheels;
@@ -39,6 +39,7 @@ namespace UniKart
 
         private void LateUpdate()
         {
+            // Root animation
             var currentRot = Root.parent.rotation * _defaultLocalRotation;
             var hrzCrtForward = currentRot * Vector3.forward - Vector3.Project(currentRot * Vector3.forward, Kart.GroundNormal);
             var hrzAnimForward = _animatedRootRotation * Vector3.forward - Vector3.Project(_animatedRootRotation * Vector3.forward, Kart.GroundNormal);
@@ -55,17 +56,43 @@ namespace UniKart
             var sphereCenter = Kart.transform.position + Kart.transform.rotation * Vector3.Scale(sphereCollider.center, Kart.transform.localScale);
             Root.position = sphereCenter + Vector3.Scale(_animatedRootRotation * Vector3.down * sphereCollider.radius, Kart.transform.localScale);
 
+            // Wheels animation
             var floorPoint = sphereCenter - Vector3.Scale(Kart.GroundNormal * sphereCollider.radius, Kart.transform.localScale);
-            Debug.DrawLine(sphereCenter, floorPoint, Color.red);
-
             _wheelSteeringAngle = Mathf.MoveTowards(_wheelSteeringAngle, 0, 90 * Time.deltaTime);
             _wheelSteeringAngle = Mathf.MoveTowards(_wheelSteeringAngle, Kart.KartInput.GetSteering() * 20, 180 * Time.deltaTime);
             var wheelRot = Quaternion.AngleAxis(_wheelSteeringAngle, Vector3.up);
+            var rootPlane = new Plane(Kart.GroundNormal, floorPoint);
             foreach (var wheel in Wheels)
             {
                 if (wheel.IsSteerable)
                 {
                     wheel.Model.localRotation = wheelRot;
+                }
+
+                if (wheel.IsFront)
+                {
+                    var defaultLocalPos = wheel.Model.localPosition;
+                    defaultLocalPos.y = wheel.Radius;
+                    var defaultPos = wheel.Model.parent.TransformPoint(defaultLocalPos);
+                    const float margin = 1f;
+                    if (rootPlane.Raycast(new Ray(defaultPos + Root.up * margin, -Root.up), out var distance))
+                    {
+                        var height = margin - distance + wheel.Radius;
+                        if (height > 0)
+                        {
+                            var wheelLocalPos = defaultLocalPos;
+                            wheelLocalPos.y = wheel.Radius + height;
+                            wheel.Model.localPosition = wheelLocalPos;
+                        }
+                        else
+                        {
+                            wheel.Model.position = defaultPos;
+                        }
+                    }
+                    else
+                    {
+                        wheel.Model.position = defaultPos;
+                    }
                 }
             }
         }
