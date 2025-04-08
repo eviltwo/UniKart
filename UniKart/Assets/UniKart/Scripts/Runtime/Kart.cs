@@ -15,7 +15,9 @@ namespace UniKart
         [Header("Performances")]
         public KartEngine.Performances EnginePerformances;
 
-        public float WheelFriction = 0.8f;
+        public float WheelDinamicFriction = 0.8f;
+
+        public float WheelStaticFriction = 0.8f;
 
         public float AngleSpeed = 90f;
 
@@ -28,6 +30,9 @@ namespace UniKart
         private Vector3 _lastGroundNormal;
 
         private bool _isFixedUpdateFrame;
+
+        private FrictionCalculator _forwardFrictionCalc = new FrictionCalculator();
+        private FrictionCalculator _sidewaysFrictionCalc = new FrictionCalculator();
 
         private void Awake()
         {
@@ -73,16 +78,23 @@ namespace UniKart
                 var relativeVelocity = Rigidbody.linearVelocity - groundVelocity;
                 var forward = Rigidbody.rotation * Vector3.forward;
                 var relativeForwardSpeed = Vector3.Dot(relativeVelocity, forward);
-                var speedDiff = engineSpeed - relativeForwardSpeed;
-                var diffForce = forward * (speedDiff * WheelFriction);
-                Rigidbody.AddForce(diffForce, ForceMode.Acceleration);
+                var speedDiff = relativeForwardSpeed - engineSpeed;
+                var diffForce = forward * (speedDiff * WheelDinamicFriction);
+                _forwardFrictionCalc.DynamicFriction = WheelDinamicFriction;
+                _forwardFrictionCalc.StaticFriction = WheelStaticFriction;
+                _forwardFrictionCalc.Update(speedDiff);
+                Rigidbody.AddForce(forward * _forwardFrictionCalc.FrictionVelocity * Rigidbody.mass, ForceMode.Acceleration);
+
 
                 // sideways speed
                 var sideways = Rigidbody.rotation * Vector3.right;
                 var relativeSidewaysSpeed = Vector3.Dot(relativeVelocity, sideways);
-                var sidewaysDiff = -relativeSidewaysSpeed;
-                var sidewaysDiffForce = sideways * (sidewaysDiff * WheelFriction);
-                Rigidbody.AddForce(sidewaysDiffForce, ForceMode.Acceleration);
+                var sidewaysDiff = relativeSidewaysSpeed;
+                var sidewaysDiffForce = sideways * (sidewaysDiff * WheelDinamicFriction);
+                _sidewaysFrictionCalc.DynamicFriction = WheelDinamicFriction;
+                _sidewaysFrictionCalc.StaticFriction = WheelStaticFriction;
+                _sidewaysFrictionCalc.Update(sidewaysDiff);
+                Rigidbody.AddForce(sideways * _sidewaysFrictionCalc.FrictionVelocity * Rigidbody.mass, ForceMode.Acceleration);
             }
 
             _lastGroundNormal = groundNormal;
@@ -143,6 +155,34 @@ namespace UniKart
                 {
                     Rigidbody.AddForce(-_lastGroundNormal * (upImpulse - threshold) * multiplier, ForceMode.Impulse);
                 }
+            }
+        }
+    }
+
+    public class FrictionCalculator
+    {
+        public float DynamicFriction { get; set; } = 0.5f;
+
+        public float StaticFriction { get; set; } = 1.0f;
+
+        private bool _isSlipping;
+
+        public bool IsSlipping => _isSlipping;
+
+        public float FrictionVelocity { get; private set; }
+
+        public void Update(float diffV)
+        {
+            var vThreshold = _isSlipping ? DynamicFriction : StaticFriction;
+            if (diffV < vThreshold)
+            {
+                _isSlipping = false;
+                FrictionVelocity = -diffV;
+            }
+            else
+            {
+                _isSlipping = true;
+                FrictionVelocity = -diffV * DynamicFriction;
             }
         }
     }

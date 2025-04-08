@@ -14,11 +14,15 @@ namespace UniKart
 
         private void LateUpdate()
         {
-            var horizontalRotation = Quaternion.FromToRotation(Target.up, Vector3.up) * Target.rotation;
-            var mergedRot = Quaternion.Slerp(horizontalRotation, Target.rotation, TiltRatio);
-            transform.rotation = mergedRot * Quaternion.Euler(OffsetRotation);
+            var groundNormal = Vector3.up;
+            var lastCameraPosition = transform.position;
 
-            transform.position = Target.position + mergedRot * OffsetPosition;
+            var camToKart = Target.position - lastCameraPosition;
+            camToKart.y = 0f;
+            var horizontalRot = Quaternion.LookRotation(camToKart);
+
+            transform.rotation = horizontalRot * Quaternion.Euler(OffsetRotation);
+            transform.position = Target.position + horizontalRot * OffsetPosition;
         }
     }
 }

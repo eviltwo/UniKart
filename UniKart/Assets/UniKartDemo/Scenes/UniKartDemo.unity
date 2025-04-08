@@ -266,7 +266,8 @@ MonoBehaviour:
   EnginePerformances:
     MaxSpeed: 30
     Acceleration: 10
-  WheelFriction: 5
+  WheelDinamicFriction: 0.5
+  WheelStaticFriction: 3
   AngleSpeed: 90
   SlopeAngleLimit: 45
 --- !u!114 &538748835
