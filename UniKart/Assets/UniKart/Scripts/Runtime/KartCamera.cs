@@ -36,12 +36,14 @@ namespace UniKart
             _pivot = Kart.transform.position + (_pivot - Kart.transform.position).normalized * ChaseDistance;
 
             // Horizontal rotation
-            var camToKart = Kart.transform.position - _pivot;
-            var horizontalCamToKart = camToKart - Vector3.Project(camToKart, groundNormal);
-            var rot = Quaternion.LookRotation(horizontalCamToKart);
+            var kartForward = Kart.transform.forward;
+            var kartForwardHorizontal = kartForward - Vector3.Project(kartForward, groundNormal);
+            var rot = Quaternion.LookRotation(kartForwardHorizontal);
 
             // Tilt rotation
-            _targetTiltRot = Quaternion.LookRotation(new Vector3(0, Vector3.Dot(camToKart, groundNormal), horizontalCamToKart.magnitude));
+            var pivotForward = Kart.transform.position - _pivot;
+            var pivotForwardHorizontal = pivotForward - Vector3.Project(pivotForward, groundNormal);
+            _targetTiltRot = Quaternion.LookRotation(new Vector3(0, Vector3.Dot(pivotForward, groundNormal), pivotForwardHorizontal.magnitude));
             _currentTiltRatio = Mathf.MoveTowards(_currentTiltRatio, Kart.IsGrounded ? TiltRatio : TiltRatio * 0.5f, Time.deltaTime);
             _targetTiltRot = Quaternion.Lerp(Quaternion.identity, _targetTiltRot, _currentTiltRatio);
 
@@ -49,6 +51,7 @@ namespace UniKart
             _tiltRot = Quaternion.RotateTowards(_tiltRot, _targetTiltRot, diffAngle * TiltAngleSpeed);
             rot = rot * _tiltRot;
 
+            // Apply
             transform.rotation = rot * Quaternion.Euler(OffsetRotation);
             transform.position = Kart.transform.position + rot * OffsetPosition;
         }
