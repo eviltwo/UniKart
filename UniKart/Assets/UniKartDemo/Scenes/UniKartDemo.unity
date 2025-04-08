@@ -1116,7 +1116,7 @@ Camera:
     height: 1
   near clip plane: 0.3
   far clip plane: 1000
-  field of view: 60
+  field of view: 90
   orthographic: 0
   orthographic size: 5
   m_Depth: -1
@@ -1205,11 +1205,12 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 29905a10e9d269d43bd93c06db46c27e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  Target: {fileID: 538748832}
-  OffsetPosition: {x: 0, y: 1.5, z: -3.38}
-  OffsetRotation: {x: 16.3, y: 0, z: 0}
+  Kart: {fileID: 538748834}
+  OffsetPosition: {x: 0, y: 1.2, z: -2.6}
+  OffsetRotation: {x: 15, y: 0, z: 0}
   ChaseDistance: 1
   TiltRatio: 1
+  TiltAngleSpeed: 0.05
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
   m_ObjectHideFlags: 0

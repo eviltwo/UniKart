@@ -149,7 +149,7 @@ namespace UniKart
                 }
 
                 var upImpulse = Vector3.Dot(_lastGroundNormal, contact.impulse);
-                var threshold = 30;
+                var threshold = 10;
                 var multiplier = 1.0f;
                 if (upImpulse > threshold)
                 {
