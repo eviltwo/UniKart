@@ -10,30 +10,26 @@ namespace UniKart
 
         public Vector3 OffsetRotation = new Vector3(0f, 0f, 0f);
 
-        public float ChaseDistance = 1f;
+        public float TiltDamper = 1f;
 
         public float TiltRatio = 0.5f;
 
-        public float TiltAngleSpeed = 0.1f;
+        public float TiltRatioInAir = 0.25f;
 
         private Vector3 _pivot;
-
-        private Quaternion _targetTiltRot = Quaternion.identity;
-
-        private Quaternion _tiltRot = Quaternion.identity;
 
         private float _currentTiltRatio = 1f;
 
         private void Start()
         {
-            _pivot = Kart.transform.transform.position - Kart.transform.forward * ChaseDistance;
+            _pivot = Kart.transform.transform.position - Kart.transform.forward * TiltDamper;
         }
 
         private void LateUpdate()
         {
             var groundNormal = Vector3.up;
 
-            _pivot = Kart.transform.position + (_pivot - Kart.transform.position).normalized * ChaseDistance;
+            _pivot = Kart.transform.position + (_pivot - Kart.transform.position).normalized * TiltDamper;
 
             // Horizontal rotation
             var kartForward = Kart.transform.forward;
@@ -43,13 +39,9 @@ namespace UniKart
             // Tilt rotation
             var pivotForward = Kart.transform.position - _pivot;
             var pivotForwardHorizontal = pivotForward - Vector3.Project(pivotForward, groundNormal);
-            _targetTiltRot = Quaternion.LookRotation(new Vector3(0, Vector3.Dot(pivotForward, groundNormal), pivotForwardHorizontal.magnitude));
-            _currentTiltRatio = Mathf.MoveTowards(_currentTiltRatio, Kart.IsGrounded ? TiltRatio : TiltRatio * 0.5f, Time.deltaTime);
-            _targetTiltRot = Quaternion.Lerp(Quaternion.identity, _targetTiltRot, _currentTiltRatio);
-
-            var diffAngle = Quaternion.Angle(_tiltRot, _targetTiltRot);
-            _tiltRot = Quaternion.RotateTowards(_tiltRot, _targetTiltRot, diffAngle * TiltAngleSpeed);
-            rot = rot * _tiltRot;
+            var fullTiltRot = Quaternion.LookRotation(new Vector3(0, Vector3.Dot(pivotForward, groundNormal), pivotForwardHorizontal.magnitude));
+            _currentTiltRatio = Mathf.MoveTowards(_currentTiltRatio, Kart.IsGrounded ? TiltRatio : TiltRatioInAir, Time.deltaTime);
+            rot = rot * Quaternion.Lerp(Quaternion.identity, fullTiltRot, _currentTiltRatio);
 
             // Apply
             transform.rotation = rot * Quaternion.Euler(OffsetRotation);

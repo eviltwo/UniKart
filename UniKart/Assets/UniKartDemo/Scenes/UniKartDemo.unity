@@ -1208,8 +1208,9 @@ MonoBehaviour:
   Kart: {fileID: 538748834}
   OffsetPosition: {x: 0, y: 1.2, z: -2.6}
   OffsetRotation: {x: 15, y: 0, z: 0}
-  ChaseDistance: 1
+  TiltDamper: 10
   TiltRatio: 1
+  TiltRatioInAir: 0.5
   TiltAngleSpeed: 0.05
 --- !u!1660057539 &9223372036854775807
 SceneRoots:
