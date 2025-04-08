@@ -16,6 +16,10 @@ namespace UniKart
 
         private Vector3 _pivot;
 
+        private Quaternion _targetTiltRot = Quaternion.identity;
+
+        private Quaternion _tiltRot = Quaternion.identity;
+
         private void Start()
         {
             _pivot = Target.position - Target.forward * ChaseDistance;
@@ -24,7 +28,6 @@ namespace UniKart
         private void LateUpdate()
         {
             var groundNormal = Vector3.up;
-            var lastCameraPosition = transform.position;
 
             _pivot = Target.position + (_pivot - Target.position).normalized * ChaseDistance;
 
@@ -34,8 +37,12 @@ namespace UniKart
             var rot = Quaternion.LookRotation(horizontalCamToKart);
 
             // Tilt rotation
-            var tiltRot = Quaternion.LookRotation(new Vector3(0, Vector3.Dot(camToKart, groundNormal), horizontalCamToKart.magnitude));
-            rot = Quaternion.Slerp(rot, rot * tiltRot, TiltRatio);
+            _targetTiltRot = Quaternion.LookRotation(new Vector3(0, Vector3.Dot(camToKart, groundNormal), horizontalCamToKart.magnitude));
+            _targetTiltRot = Quaternion.Lerp(Quaternion.identity, _targetTiltRot, TiltRatio);
+
+            var diffAngle = Quaternion.Angle(_tiltRot, _targetTiltRot);
+            _tiltRot = Quaternion.RotateTowards(_tiltRot, _targetTiltRot, diffAngle * 0.1f);
+            rot = rot * _tiltRot;
 
             transform.rotation = rot * Quaternion.Euler(OffsetRotation);
             transform.position = Target.position + rot * OffsetPosition;

@@ -27,6 +27,8 @@ namespace UniKart
 
         private KartGroundDetector _groundDetector;
 
+        public bool IsGrounded => _groundDetector.ContactCount > 0;
+
         private Vector3 _lastGroundNormal;
 
         private bool _isFixedUpdateFrame;
