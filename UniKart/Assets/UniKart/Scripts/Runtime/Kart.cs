@@ -150,20 +150,14 @@ namespace UniKart
 
         private void ReduceHop(Collision collision)
         {
-            foreach (var contact in collision.contacts)
+            var rbUpV = Vector3.Dot(Rigidbody.linearVelocity, _lastGroundNormal);
+            var impUpV = Vector3.Dot(collision.impulse, _lastGroundNormal) / Rigidbody.mass;
+            var usingUpV = Mathf.Min(rbUpV, impUpV);
+            var threshold = 1f;
+            var reduceRatio = 0.9f;
+            if (usingUpV > threshold)
             {
-                if (contact.thisCollider != Collider)
-                {
-                    continue;
-                }
-
-                var upImpulse = Vector3.Dot(_lastGroundNormal, contact.impulse);
-                var threshold = 10;
-                var multiplier = 1.0f;
-                if (upImpulse > threshold)
-                {
-                    Rigidbody.AddForce(-_lastGroundNormal * (upImpulse - threshold) * multiplier, ForceMode.Impulse);
-                }
+                Rigidbody.linearVelocity -= _lastGroundNormal * (usingUpV - threshold) * reduceRatio;
             }
         }
     }
