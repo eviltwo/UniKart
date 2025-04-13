@@ -101,8 +101,18 @@ namespace UniKart
             var hrzFitRot = Quaternion.AngleAxis(hrzAngle, Kart.GroundNormal);
             _animatedRootRotation = hrzFitRot * _animatedRootRotation;
             _animatedRootRotation = Quaternion.Lerp(_animatedRootRotation, currentRot, RootRotationSpeed * Time.deltaTime);
-            _rootSteeringAngle = Mathf.Lerp(_rootSteeringAngle, 0, 2 * Time.deltaTime);
-            _rootSteeringAngle = Mathf.MoveTowards(_rootSteeringAngle, Kart.KartInput.GetSteering() * 10, 20 * Time.deltaTime);
+            if (Kart.IsDrifting)
+            {
+                var anglePivot = Kart.DriftDirection * 30;
+                _rootSteeringAngle = Mathf.Lerp(_rootSteeringAngle, anglePivot, 2 * Time.deltaTime);
+                _rootSteeringAngle = Mathf.MoveTowards(_rootSteeringAngle, anglePivot + Kart.KartInput.GetSteering() * 10, 20 * Time.deltaTime);
+            }
+            else
+            {
+                _rootSteeringAngle = Mathf.Lerp(_rootSteeringAngle, 0, 2 * Time.deltaTime);
+                _rootSteeringAngle = Mathf.MoveTowards(_rootSteeringAngle, Kart.KartInput.GetSteering() * 10, 20 * Time.deltaTime);
+            }
+
             var steeringRot = Quaternion.AngleAxis(_rootSteeringAngle, Vector3.up);
             Root.rotation = _animatedRootRotation * steeringRot;
 

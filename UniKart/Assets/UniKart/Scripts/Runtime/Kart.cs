@@ -19,9 +19,15 @@ namespace UniKart
 
         public float WheelStaticFriction = 0.8f;
 
-        public float AngleSpeed = 90f;
+        public float SteeringAngle = 90f;
 
-        public float AngleSpeedInAir = 45f;
+        public float DriftAngleOffset = 50f;
+
+        public float DriftAngle = 70f;
+
+        public float AirSteeringAngleMultiplier = 0.25f;
+
+        public float DriftCentrifugalForce = 1f;
 
         public float SlopeAngleLimit = 45f;
 
@@ -50,6 +56,14 @@ namespace UniKart
         private bool _isJumpRequired;
 
         public event Action OnJump;
+
+        private bool _isDrifting;
+
+        public bool IsDrifting => _isDrifting;
+
+        private float _driftDirection;
+
+        public float DriftDirection => _driftDirection;
 
         private FrictionCalculator _forwardFrictionCalc = new FrictionCalculator();
         private FrictionCalculator _sidewaysFrictionCalc = new FrictionCalculator();
@@ -91,8 +105,6 @@ namespace UniKart
 
             _groundDetector.ClearContacts();
 
-            Debug.DrawRay(Rigidbody.position, groundNormal, Color.red);
-
             _engine.SetThrottle(throttle);
             _engine.Update(deltaTime);
             var engineSpeed = _engine.Speed;
@@ -131,6 +143,27 @@ namespace UniKart
                 }
             }
 
+            // Drift
+            if (_isDrifting)
+            {
+                if (!drift)
+                {
+                    _isDrifting = false;
+                }
+            }
+            else if (drift && Mathf.Abs(steering) > 0.5f)
+            {
+                _isDrifting = true;
+                _driftDirection = Mathf.Sign(steering);
+            }
+
+            if (_isDrifting && _isGrounded)
+            {
+                var forwardVelocity = Vector3.Dot(Rigidbody.linearVelocity, Rigidbody.rotation * Vector3.forward);
+                var driftForce = Rigidbody.rotation * Vector3.right * (DriftCentrifugalForce * forwardVelocity * -_driftDirection);
+                Rigidbody.AddForce(driftForce, ForceMode.Acceleration);
+            }
+
             _lastGroundNormal = groundNormal;
         }
 
@@ -143,8 +176,9 @@ namespace UniKart
 
             var deltaTime = Time.fixedDeltaTime;
             var steering = KartInput.GetSteering();
-            var angleSpeed = _isGrounded ? AngleSpeed : AngleSpeedInAir;
-            var deltaAngle = steering * angleSpeed * deltaTime;
+            var angle = _isDrifting ? DriftAngleOffset * _driftDirection + DriftAngle * steering : SteeringAngle * steering;
+            angle *= _isGrounded ? 1 : AirSteeringAngleMultiplier;
+            var deltaAngle = angle * deltaTime;
             var rotation = Rigidbody.rotation;
             rotation = Quaternion.FromToRotation(rotation * Vector3.up, _lastGroundNormal) * rotation;
             rotation = rotation * Quaternion.AngleAxis(deltaAngle, Vector3.up);

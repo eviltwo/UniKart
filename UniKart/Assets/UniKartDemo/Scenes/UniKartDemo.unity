@@ -377,8 +377,11 @@ MonoBehaviour:
     Acceleration: 10
   WheelDinamicFriction: 0.5
   WheelStaticFriction: 3
-  AngleSpeed: 90
-  AngleSpeedInAir: 30
+  SteeringAngle: 60
+  DriftAngleOffset: 50
+  DriftAngle: 40
+  AirSteeringAngleMultiplier: 0.25
+  DriftCentrifugalForce: 20
   SlopeAngleLimit: 45
   Gravity: {x: -0, y: -9.81, z: -0}
   JumpOnDrift: 1
