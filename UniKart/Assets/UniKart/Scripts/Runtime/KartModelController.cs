@@ -70,8 +70,8 @@ namespace UniKart
             var hrzFitRot = Quaternion.AngleAxis(hrzAngle, Kart.GroundNormal);
             _animatedRootRotation = hrzFitRot * _animatedRootRotation;
             _animatedRootRotation = Quaternion.Lerp(_animatedRootRotation, currentRot, RootRotationSpeed * Time.deltaTime);
-            _rootSteeringAngle = Mathf.MoveTowards(_rootSteeringAngle, 0, 40 * Time.deltaTime);
-            _rootSteeringAngle = Mathf.MoveTowards(_rootSteeringAngle, Kart.KartInput.GetSteering() * 10, 90 * Time.deltaTime);
+            _rootSteeringAngle = Mathf.Lerp(_rootSteeringAngle, 0, 2 * Time.deltaTime);
+            _rootSteeringAngle = Mathf.MoveTowards(_rootSteeringAngle, Kart.KartInput.GetSteering() * 10, 20 * Time.deltaTime);
             var steeringRot = Quaternion.AngleAxis(_rootSteeringAngle, Vector3.up);
             Root.rotation = _animatedRootRotation * steeringRot;
 
@@ -81,7 +81,7 @@ namespace UniKart
 
             // Wheels animation
             var floorPoint = sphereCenter - Vector3.Scale(Kart.GroundNormal * sphereCollider.radius, Kart.transform.localScale);
-            _wheelSteeringAngle = Mathf.MoveTowards(_wheelSteeringAngle, 0, 90 * Time.deltaTime);
+            _wheelSteeringAngle = Mathf.MoveTowards(_wheelSteeringAngle, 0, 2 * Time.deltaTime);
             _wheelSteeringAngle = Mathf.MoveTowards(_wheelSteeringAngle, Kart.KartInput.GetSteering() * 20, 180 * Time.deltaTime);
             var wheelRot = Quaternion.AngleAxis(_wheelSteeringAngle, Vector3.up);
             var rootPlane = new Plane(Kart.GroundNormal, floorPoint);

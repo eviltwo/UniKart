@@ -373,7 +373,7 @@ MonoBehaviour:
   Collider: {fileID: 538748830}
   KartInput: {fileID: 538748833}
   EnginePerformances:
-    MaxSpeed: 15
+    MaxSpeed: 20
     Acceleration: 10
   WheelDinamicFriction: 0.5
   WheelStaticFriction: 3
