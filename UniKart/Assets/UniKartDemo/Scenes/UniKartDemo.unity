@@ -378,8 +378,11 @@ MonoBehaviour:
   WheelDinamicFriction: 0.5
   WheelStaticFriction: 3
   AngleSpeed: 90
+  AngleSpeedInAir: 30
   SlopeAngleLimit: 45
   Gravity: {x: -0, y: -9.81, z: -0}
+  JumpOnDrift: 1
+  JumpForce: 2
 --- !u!114 &538748835
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1525,6 +1528,8 @@ MonoBehaviour:
   BodySpringAngleMax: 5
   BodySpringStrength: 100
   BodySpringDamper: 10
+  JumpDuration: 0.4
+  JumpHeight: 0.2
   Wheels:
   - Model: {fileID: 1991496819}
     Radius: 0.3

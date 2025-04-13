@@ -26,6 +26,10 @@ namespace UniKart
 
         public float BodySpringDamper = 0.5f;
 
+        public float JumpDuration = 0.2f;
+
+        public float JumpHeight = 0.5f;
+
         [System.Serializable]
         public class WheelInfo
         {
@@ -54,14 +58,41 @@ namespace UniKart
 
         private Vector3 _bodyVelocity;
 
+        private bool _isJumping;
+
+        private float _jumpElapsedTime;
+
         private void Start()
         {
             _defaultLocalRotation = Root.localRotation;
             _defaultBodyLocalPosition = Body.localPosition;
         }
 
+        private void OnEnable()
+        {
+            Kart.OnJump += OnJump;
+        }
+
+        private void OnDisable()
+        {
+            Kart.OnJump -= OnJump;
+        }
+
         private void LateUpdate()
         {
+            // Jump
+            var jumpOffset = 0f;
+            if (_isJumping)
+            {
+                _jumpElapsedTime += Time.deltaTime;
+                var jumpProgress = Mathf.Clamp01(_jumpElapsedTime / JumpDuration);
+                jumpOffset = JumpHeight * Mathf.Sin(jumpProgress * Mathf.PI);
+                if (jumpProgress >= 1)
+                {
+                    _isJumping = false;
+                }
+            }
+
             // Root animation
             var currentRot = Root.parent.rotation * _defaultLocalRotation;
             var hrzCrtForward = currentRot * Vector3.forward - Vector3.Project(currentRot * Vector3.forward, Kart.GroundNormal);
@@ -77,7 +108,7 @@ namespace UniKart
 
             var sphereCollider = Kart.Collider;
             var sphereCenter = Kart.transform.position + Kart.transform.rotation * Vector3.Scale(sphereCollider.center, Kart.transform.localScale);
-            Root.position = sphereCenter + Vector3.Scale(_animatedRootRotation * Vector3.down * sphereCollider.radius, Kart.transform.localScale);
+            Root.position = sphereCenter + Vector3.Scale(_animatedRootRotation * Vector3.down * sphereCollider.radius, Kart.transform.localScale) + Vector3.up * jumpOffset;
 
             // Wheels animation
             var floorPoint = sphereCenter - Vector3.Scale(Kart.GroundNormal * sphereCollider.radius, Kart.transform.localScale);
@@ -154,6 +185,12 @@ namespace UniKart
                 Body.localPosition = _bodyPivot;
                 Body.localRotation = Quaternion.FromToRotation(Vector3.up, _bodyPivot);
             }
+        }
+
+        private void OnJump()
+        {
+            _isJumping = true;
+            _jumpElapsedTime = 0;
         }
 
         private void OnDrawGizmosSelected()

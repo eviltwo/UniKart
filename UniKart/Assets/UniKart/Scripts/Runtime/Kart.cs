@@ -21,21 +21,35 @@ namespace UniKart
 
         public float AngleSpeed = 90f;
 
+        public float AngleSpeedInAir = 45f;
+
         public float SlopeAngleLimit = 45f;
 
         public Vector3 Gravity = Vector3.up * -9.81f;
+
+        public bool JumpOnDrift = true;
+
+        public float JumpForce = 2f;
 
         private KartEngine _engine;
 
         private KartGroundDetector _groundDetector;
 
-        public bool IsGrounded => _groundDetector.ContactCount > 0;
+        private bool _isGrounded;
+
+        public bool IsGrounded => _isGrounded;
 
         private Vector3 _lastGroundNormal;
 
         public Vector3 GroundNormal => _lastGroundNormal;
 
         private bool _isFixedUpdateFrame;
+
+        private bool _isDriftInputLast;
+
+        private bool _isJumpRequired;
+
+        public event Action OnJump;
 
         private FrictionCalculator _forwardFrictionCalc = new FrictionCalculator();
         private FrictionCalculator _sidewaysFrictionCalc = new FrictionCalculator();
@@ -66,10 +80,10 @@ namespace UniKart
                 Rigidbody.AddForce(Gravity, ForceMode.Acceleration);
             }
 
-            var grounded = _groundDetector.ContactCount > 0;
+            _isGrounded = _groundDetector.ContactCount > 0;
             var groundNormal = _groundDetector.GetGroundNormal();
             var groundVelocity = _groundDetector.GetGroundVelocity();
-            if (!grounded)
+            if (!_isGrounded)
             {
                 groundNormal = _lastGroundNormal;
                 groundVelocity = Vector3.zero;
@@ -83,7 +97,7 @@ namespace UniKart
             _engine.Update(deltaTime);
             var engineSpeed = _engine.Speed;
 
-            if (grounded)
+            if (_isGrounded)
             {
                 // forward speed
                 var relativeVelocity = Rigidbody.linearVelocity - groundVelocity;
@@ -106,6 +120,17 @@ namespace UniKart
                 Rigidbody.AddForce(sideways * _sidewaysFrictionCalc.FrictionVelocity * Rigidbody.mass, ForceMode.Acceleration);
             }
 
+            // Jump
+            if (_isJumpRequired)
+            {
+                _isJumpRequired = false;
+                if (_isGrounded)
+                {
+                    Rigidbody.AddForce(groundNormal * JumpForce, ForceMode.VelocityChange);
+                    OnJump?.Invoke();
+                }
+            }
+
             _lastGroundNormal = groundNormal;
         }
 
@@ -118,7 +143,8 @@ namespace UniKart
 
             var deltaTime = Time.fixedDeltaTime;
             var steering = KartInput.GetSteering();
-            var deltaAngle = steering * AngleSpeed * deltaTime;
+            var angleSpeed = _isGrounded ? AngleSpeed : AngleSpeedInAir;
+            var deltaAngle = steering * angleSpeed * deltaTime;
             var rotation = Rigidbody.rotation;
             rotation = Quaternion.FromToRotation(rotation * Vector3.up, _lastGroundNormal) * rotation;
             rotation = rotation * Quaternion.AngleAxis(deltaAngle, Vector3.up);
@@ -134,6 +160,13 @@ namespace UniKart
             }
 
             _groundDetector.SlopeAngleLimit = SlopeAngleLimit;
+
+            if (JumpOnDrift)
+            {
+                var driftInput = KartInput.GetDrift();
+                _isJumpRequired |= !_isDriftInputLast && driftInput;
+                _isDriftInputLast = driftInput;
+            }
         }
 
         private void OnCollisionEnter(Collision collision)
