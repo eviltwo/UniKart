@@ -381,7 +381,7 @@ MonoBehaviour:
   DriftAngleOffset: 50
   DriftAngle: 40
   AirSteeringAngleMultiplier: 0.25
-  DriftCentrifugalForce: 20
+  DriftCentrifugalForce: 0.5
   SlopeAngleLimit: 45
   Gravity: {x: -0, y: -9.81, z: -0}
   JumpOnDrift: 1
