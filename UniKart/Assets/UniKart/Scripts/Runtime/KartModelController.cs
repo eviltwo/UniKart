@@ -179,6 +179,8 @@ namespace UniKart
                 // Dumping
                 _bodyVelocity = Vector3.Lerp(_bodyVelocity, Vector3.zero, BodySpringDamper * Time.deltaTime);
 
+                var prevPivot = _bodyPivot;
+
                 // Clamp angles
                 var angle = Vector3.Angle(Vector3.up, _bodyPivot);
                 if (angle > BodySpringAngleMax)
@@ -190,6 +192,10 @@ namespace UniKart
                 // Clamp length
                 var newLength = Mathf.Clamp(_bodyPivot.magnitude, BodySpringLengthMin, BodySpringLengthMax);
                 _bodyPivot = _bodyPivot.normalized * newLength;
+
+                // Move velocity
+                var diff = _bodyPivot - prevPivot;
+                _bodyVelocity += diff;
 
                 // Apply
                 Body.localPosition = _bodyPivot;
