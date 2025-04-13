@@ -27,6 +27,10 @@ namespace UniKart
 
         public float AirSteeringAngleMultiplier = 0.25f;
 
+        public float AirSteeringDelay = 0.5f;
+
+        public float AirSteeringTransitionDuration = 0.5f;
+
         public float DriftCentrifugalForce = 1f;
 
         public float SlopeAngleLimit = 45f;
@@ -44,6 +48,8 @@ namespace UniKart
         private bool _isGrounded;
 
         public bool IsGrounded => _isGrounded;
+
+        private float _airElapsedTime;
 
         private Vector3 _lastGroundNormal;
 
@@ -177,7 +183,17 @@ namespace UniKart
             var deltaTime = Time.fixedDeltaTime;
             var steering = KartInput.GetSteering();
             var angle = _isDrifting ? DriftAngleOffset * _driftDirection + DriftAngle * steering : SteeringAngle * steering;
-            angle *= _isGrounded ? 1 : AirSteeringAngleMultiplier;
+            if (!_isGrounded)
+            {
+                _airElapsedTime += deltaTime;
+                var multiplier = Mathf.Lerp(1f, AirSteeringAngleMultiplier, (_airElapsedTime - AirSteeringDelay) / AirSteeringTransitionDuration);
+                angle *= multiplier;
+            }
+            else
+            {
+                _airElapsedTime = 0f;
+            }
+
             var deltaAngle = angle * deltaTime;
             var rotation = Rigidbody.rotation;
             rotation = Quaternion.FromToRotation(rotation * Vector3.up, _lastGroundNormal) * rotation;
