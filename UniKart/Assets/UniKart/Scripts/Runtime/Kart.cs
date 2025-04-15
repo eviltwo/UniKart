@@ -322,7 +322,6 @@ namespace UniKart
 
         public void RegisterCollision(Collision collision)
         {
-            var v = collision.rigidbody ? collision.rigidbody.linearVelocity : Vector3.zero;
             foreach (var contact in collision.contacts)
             {
                 var normal = contact.normal;
@@ -334,6 +333,8 @@ namespace UniKart
 
                 _contactCount++;
                 _totalNormals += normal;
+
+                var v = collision.rigidbody == null ? Vector3.zero : collision.rigidbody.GetPointVelocity(contact.point);
                 _totalVelocities += v;
             }
         }
