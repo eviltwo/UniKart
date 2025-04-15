@@ -71,6 +71,14 @@ namespace UniKart
 
         public float DriftDirection => _driftDirection;
 
+        private bool _isBoosting;
+
+        private float _boostElapsedTime;
+
+        private float _boostDuration;
+
+        public bool IsBoosting => _isBoosting;
+
         private FrictionCalculator _forwardFrictionCalc = new FrictionCalculator();
         private FrictionCalculator _sidewaysFrictionCalc = new FrictionCalculator();
 
@@ -94,6 +102,18 @@ namespace UniKart
             var brake = KartInput.GetBrake();
             var steering = KartInput.GetSteering();
             var drift = KartInput.GetDrift();
+
+            if (_isBoosting)
+            {
+                throttle = 1;
+                _boostElapsedTime += deltaTime;
+                if (_boostElapsedTime >= _boostDuration)
+                {
+                    _isBoosting = false;
+                    _engine.AccelerationMultiplier = 1.0f;
+                    _engine.MaxSpeedMultiplier = 1.0f;
+                }
+            }
 
             if (!Rigidbody.useGravity)
             {
@@ -243,6 +263,15 @@ namespace UniKart
                 Rigidbody.linearVelocity -= _lastGroundNormal * (usingUpV - threshold) * reduceRatio;
             }
         }
+
+        public void Boost(float accelerationMultiplier, float maxSpeedMultiplier, float duration)
+        {
+            _isBoosting = true;
+            _boostElapsedTime = 0f;
+            _boostDuration = duration;
+            _engine.AccelerationMultiplier = accelerationMultiplier;
+            _engine.MaxSpeedMultiplier = maxSpeedMultiplier;
+        }
     }
 
     public class FrictionCalculator
@@ -350,6 +379,10 @@ namespace UniKart
 
         public Performances EnginePerformances { get; set; }
 
+        public float AccelerationMultiplier { get; set; } = 1.0f;
+
+        public float MaxSpeedMultiplier { get; set; } = 1.0f;
+
         private float _throttle;
 
         private float _speed;
@@ -368,7 +401,7 @@ namespace UniKart
 
         public void Update(float deltaTime)
         {
-            _speed = Mathf.MoveTowards(_speed, EnginePerformances.MaxSpeed * _throttle, EnginePerformances.Acceleration * deltaTime);
+            _speed = Mathf.MoveTowards(_speed, EnginePerformances.MaxSpeed * MaxSpeedMultiplier * _throttle, EnginePerformances.Acceleration * AccelerationMultiplier * deltaTime);
         }
     }
 }
