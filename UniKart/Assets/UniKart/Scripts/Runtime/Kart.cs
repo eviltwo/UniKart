@@ -61,6 +61,8 @@ namespace UniKart
 
         private bool _isJumpRequired;
 
+        private bool _isJumpFrame;
+
         public event Action OnJump;
 
         private bool _isDrifting;
@@ -152,18 +154,20 @@ namespace UniKart
                 var sideways = Rigidbody.rotation * Vector3.right;
                 var relativeSidewaysSpeed = Vector3.Dot(relativeVelocity, sideways);
                 var sidewaysDiff = relativeSidewaysSpeed;
-                _sidewaysFrictionCalc.DynamicFriction = WheelDinamicFriction;
-                _sidewaysFrictionCalc.StaticFriction = WheelStaticFriction;
+                _sidewaysFrictionCalc.DynamicFriction = WheelDinamicFriction * (_isDrifting ? 0.2f : 1f);
+                _sidewaysFrictionCalc.StaticFriction = WheelStaticFriction * (_isDrifting ? 0f : 1f);
                 _sidewaysFrictionCalc.Update(sidewaysDiff);
                 Rigidbody.AddForce(sideways * _sidewaysFrictionCalc.FrictionVelocity * Rigidbody.mass, ForceMode.Acceleration);
             }
 
             // Jump
+            _isJumpFrame = false;
             if (_isJumpRequired)
             {
                 _isJumpRequired = false;
                 if (_isGrounded)
                 {
+                    _isJumpFrame = true;
                     Rigidbody.AddForce(groundNormal * JumpForce, ForceMode.VelocityChange);
                     OnJump?.Invoke();
                 }
@@ -183,11 +187,13 @@ namespace UniKart
                 _driftDirection = Mathf.Sign(steering);
             }
 
+            Debug.DrawRay(Rigidbody.position, groundNormal * 2f, _isDrifting ? Color.red : Color.green);
+
             if (_isDrifting && _isGrounded)
             {
                 var forwardVelocity = Vector3.Dot(Rigidbody.linearVelocity, Rigidbody.rotation * Vector3.forward);
                 var driftForce = Rigidbody.rotation * Vector3.right * (DriftCentrifugalForce * forwardVelocity * -_driftDirection);
-                Rigidbody.AddForce(driftForce, ForceMode.Acceleration);
+                //Rigidbody.AddForce(driftForce, ForceMode.Acceleration);
             }
 
             _lastGroundNormal = groundNormal;
@@ -218,6 +224,7 @@ namespace UniKart
             var rotation = Rigidbody.rotation;
             rotation = Quaternion.FromToRotation(rotation * Vector3.up, _lastGroundNormal) * rotation;
             rotation = rotation * Quaternion.AngleAxis(deltaAngle, Vector3.up);
+
             Rigidbody.rotation = rotation;
         }
 
@@ -289,7 +296,7 @@ namespace UniKart
         public void Update(float diffV)
         {
             var vThreshold = _isSlipping ? DynamicFriction : StaticFriction;
-            if (diffV < vThreshold)
+            if (Mathf.Abs(diffV) < vThreshold)
             {
                 _isSlipping = false;
                 FrictionVelocity = -diffV;

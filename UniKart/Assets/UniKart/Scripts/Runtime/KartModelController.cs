@@ -103,7 +103,7 @@ namespace UniKart
             _animatedRootRotation = Quaternion.Lerp(_animatedRootRotation, currentRot, RootRotationSpeed * Time.deltaTime);
             if (Kart.IsDrifting)
             {
-                var anglePivot = Kart.DriftDirection * 30;
+                var anglePivot = Kart.DriftDirection * 5;
                 _rootSteeringAngle = Mathf.Lerp(_rootSteeringAngle, anglePivot, 2 * Time.deltaTime);
                 _rootSteeringAngle = Mathf.MoveTowards(_rootSteeringAngle, anglePivot + Kart.KartInput.GetSteering() * 10, 20 * Time.deltaTime);
             }

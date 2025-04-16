@@ -20,6 +20,8 @@ namespace UniKart
 
         private float _currentTiltRatio = 1f;
 
+        private float _driftSwitchRatio;
+
         private void Start()
         {
             _pivot = Kart.transform.transform.position - Kart.transform.forward * TiltDamper;
@@ -32,7 +34,12 @@ namespace UniKart
             _pivot = Kart.transform.position + (_pivot - Kart.transform.position).normalized * TiltDamper;
 
             // Horizontal rotation
-            var kartForward = Kart.transform.forward;
+            var kartForward = (Kart.transform.position - _pivot).normalized;
+            var driftForward = Vector3.Lerp(Kart.transform.forward, kartForward, 0.5f);
+            var targetRatio = (Kart.IsDrifting || !Kart.IsGrounded) ? 1 : 0;
+            _driftSwitchRatio = Mathf.Lerp(_driftSwitchRatio, targetRatio, Time.deltaTime * 1f);
+            kartForward = Vector3.Slerp(kartForward, driftForward, _driftSwitchRatio);
+
             var kartForwardHorizontal = kartForward - Vector3.Project(kartForward, groundNormal);
             var rot = Quaternion.LookRotation(kartForwardHorizontal);
 
