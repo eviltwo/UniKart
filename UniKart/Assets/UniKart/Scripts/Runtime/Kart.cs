@@ -61,8 +61,6 @@ namespace UniKart
 
         private bool _isJumpRequired;
 
-        private bool _isJumpFrame;
-
         public event Action OnJump;
 
         private bool _isDrifting;
@@ -161,13 +159,11 @@ namespace UniKart
             }
 
             // Jump
-            _isJumpFrame = false;
             if (_isJumpRequired)
             {
                 _isJumpRequired = false;
                 if (_isGrounded)
                 {
-                    _isJumpFrame = true;
                     Rigidbody.AddForce(groundNormal * JumpForce, ForceMode.VelocityChange);
                     OnJump?.Invoke();
                 }
@@ -185,15 +181,6 @@ namespace UniKart
             {
                 _isDrifting = true;
                 _driftDirection = Mathf.Sign(steering);
-            }
-
-            Debug.DrawRay(Rigidbody.position, groundNormal * 2f, _isDrifting ? Color.red : Color.green);
-
-            if (_isDrifting && _isGrounded)
-            {
-                var forwardVelocity = Vector3.Dot(Rigidbody.linearVelocity, Rigidbody.rotation * Vector3.forward);
-                var driftForce = Rigidbody.rotation * Vector3.right * (DriftCentrifugalForce * forwardVelocity * -_driftDirection);
-                //Rigidbody.AddForce(driftForce, ForceMode.Acceleration);
             }
 
             _lastGroundNormal = groundNormal;
