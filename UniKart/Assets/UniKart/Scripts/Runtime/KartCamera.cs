@@ -10,45 +10,37 @@ namespace UniKart
 
         public Vector3 OffsetRotation = new Vector3(0f, 0f, 0f);
 
-        public float TiltDamper = 1f;
+        public float ChaseDistance = 1f;
 
-        public float TiltRatio = 0.5f;
+        private Vector3 _chacingPivot;
 
-        public float TiltRatioInAir = 0.25f;
-
-        private Vector3 _pivot;
-
-        private float _currentTiltRatio = 1f;
-
-        private float _driftSwitchRatio;
+        private Vector3 _smoothingGroundNormal;
 
         private void Start()
         {
-            _pivot = Kart.transform.transform.position - Kart.transform.forward * TiltDamper;
+            _chacingPivot = Kart.transform.transform.position - Kart.transform.forward * ChaseDistance;
         }
 
         private void LateUpdate()
         {
-            var groundNormal = Vector3.up;
+            var worldUpward = Vector3.up;
 
-            _pivot = Kart.transform.position + (_pivot - Kart.transform.position).normalized * TiltDamper;
+            _chacingPivot = Kart.transform.position + (_chacingPivot - Kart.transform.position).normalized * ChaseDistance;
 
             // Horizontal rotation
-            var kartForward = (Kart.transform.position - _pivot).normalized;
-            var driftForward = Vector3.Lerp(Kart.transform.forward, kartForward, 0.5f);
-            var targetRatio = (Kart.IsDrifting || !Kart.IsGrounded) ? 1 : 0;
-            _driftSwitchRatio = Mathf.Lerp(_driftSwitchRatio, targetRatio, Time.deltaTime * 1f);
-            kartForward = Vector3.Slerp(kartForward, driftForward, _driftSwitchRatio);
-
-            var kartForwardHorizontal = kartForward - Vector3.Project(kartForward, groundNormal);
-            var rot = Quaternion.LookRotation(kartForwardHorizontal);
+            var moveForward = (Kart.transform.position - _chacingPivot).normalized;
+            var mergedForward = Vector3.Lerp(Kart.transform.forward, moveForward, 0.5f);
+            var mergedForwardHorizontal = mergedForward - Vector3.Project(mergedForward, worldUpward);
+            var rot = Quaternion.LookRotation(mergedForwardHorizontal);
 
             // Tilt rotation
-            var pivotForward = Kart.transform.position - _pivot;
-            var pivotForwardHorizontal = pivotForward - Vector3.Project(pivotForward, groundNormal);
-            var fullTiltRot = Quaternion.LookRotation(new Vector3(0, Vector3.Dot(pivotForward, groundNormal), pivotForwardHorizontal.magnitude));
-            _currentTiltRatio = Mathf.MoveTowards(_currentTiltRatio, Kart.IsGrounded ? TiltRatio : TiltRatioInAir, Time.deltaTime);
-            rot = rot * Quaternion.Lerp(Quaternion.identity, fullTiltRot, _currentTiltRatio);
+            var moveUpward = Vector3.Cross(moveForward, Vector3.Cross(worldUpward, moveForward));
+            var targetGroundNormal = Kart.IsGrounded ? Kart.GroundNormal : moveUpward;
+            _smoothingGroundNormal = Vector3.Slerp(_smoothingGroundNormal, targetGroundNormal, Time.deltaTime * 1f);
+            var groundForward = Vector3.Cross(rot * Vector3.right, _smoothingGroundNormal);
+            var groundForwardHorizontal = groundForward - Vector3.Project(groundForward, worldUpward);
+            var tiltRot = Quaternion.LookRotation(new Vector3(0, Vector3.Dot(groundForward, worldUpward), groundForwardHorizontal.magnitude));
+            rot = rot * tiltRot;
 
             // Apply
             transform.rotation = rot * Quaternion.Euler(OffsetRotation);
