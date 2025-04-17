@@ -15,7 +15,7 @@ namespace UniKart
         [Header("Performances")]
         public KartEngine.Performances EnginePerformances;
 
-        public float WheelDinamicFriction = 0.8f;
+        public float WheelDynamicFriction = 0.8f;
 
         public float WheelStaticFriction = 0.8f;
 
@@ -25,13 +25,14 @@ namespace UniKart
 
         public float DriftAngle = 70f;
 
+        [Range(0, 1)]
+        public float DriftFrictionMultiplier = 0.2f;
+
         public float AirSteeringAngleMultiplier = 0.25f;
 
         public float AirSteeringDelay = 0.5f;
 
         public float AirSteeringTransitionDuration = 0.5f;
-
-        public float DriftCentrifugalForce = 1f;
 
         public float SlopeAngleLimit = 45f;
 
@@ -142,7 +143,7 @@ namespace UniKart
                 var forward = Rigidbody.rotation * Vector3.forward;
                 var relativeForwardSpeed = Vector3.Dot(relativeVelocity, forward);
                 var speedDiff = relativeForwardSpeed - engineSpeed;
-                _forwardFrictionCalc.DynamicFriction = WheelDinamicFriction;
+                _forwardFrictionCalc.DynamicFriction = WheelDynamicFriction;
                 _forwardFrictionCalc.StaticFriction = WheelStaticFriction;
                 _forwardFrictionCalc.Update(speedDiff);
                 Rigidbody.AddForce(forward * _forwardFrictionCalc.FrictionVelocity * Rigidbody.mass, ForceMode.Acceleration);
@@ -152,7 +153,7 @@ namespace UniKart
                 var sideways = Rigidbody.rotation * Vector3.right;
                 var relativeSidewaysSpeed = Vector3.Dot(relativeVelocity, sideways);
                 var sidewaysDiff = relativeSidewaysSpeed;
-                _sidewaysFrictionCalc.DynamicFriction = WheelDinamicFriction * (_isDrifting ? 0.2f : 1f);
+                _sidewaysFrictionCalc.DynamicFriction = WheelDynamicFriction * (_isDrifting ? DriftFrictionMultiplier : 1f);
                 _sidewaysFrictionCalc.StaticFriction = WheelStaticFriction * (_isDrifting ? 0f : 1f);
                 _sidewaysFrictionCalc.Update(sidewaysDiff);
                 Rigidbody.AddForce(sideways * _sidewaysFrictionCalc.FrictionVelocity * Rigidbody.mass, ForceMode.Acceleration);

@@ -829,15 +829,15 @@ MonoBehaviour:
   EnginePerformances:
     MaxSpeed: 20
     Acceleration: 10
-  WheelDinamicFriction: 0.5
+  WheelDynamicFriction: 0.5
   WheelStaticFriction: 3
   SteeringAngle: 60
   DriftAngleOffset: 50
   DriftAngle: 40
+  DriftFrictionMultiplier: 0.2
   AirSteeringAngleMultiplier: 0.25
   AirSteeringDelay: 0.3
   AirSteeringTransitionDuration: 0.5
-  DriftCentrifugalForce: 0.5
   SlopeAngleLimit: 45
   Gravity: {x: -0, y: -9.81, z: -0}
   JumpOnDrift: 1
