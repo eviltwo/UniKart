@@ -2331,9 +2331,9 @@ MonoBehaviour:
   Kart: {fileID: 538748834}
   OffsetPosition: {x: 0, y: 1.2, z: -2.6}
   OffsetRotation: {x: 15, y: 0, z: 0}
-  TiltDamper: 1
-  TiltRatio: 1
-  TiltRatioInAir: 0.5
+  ChaseDistance: 1
+  KartFitRatio: 0.5
+  TiltAngleSmoothing: 0.5
 --- !u!1 &2139386658
 GameObject:
   m_ObjectHideFlags: 0

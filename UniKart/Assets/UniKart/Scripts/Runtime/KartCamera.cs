@@ -12,6 +12,11 @@ namespace UniKart
 
         public float ChaseDistance = 1f;
 
+        [Range(0, 1)]
+        public float KartFitRatio = 0.5f;
+
+        public float TiltAngleSmoothing = 1;
+
         private Vector3 _chacingPivot;
 
         private Vector3 _smoothingGroundNormal;
@@ -29,14 +34,14 @@ namespace UniKart
 
             // Horizontal rotation
             var moveForward = (Kart.transform.position - _chacingPivot).normalized;
-            var mergedForward = Vector3.Lerp(Kart.transform.forward, moveForward, 0.5f);
+            var mergedForward = Vector3.Lerp(moveForward, Kart.transform.forward, KartFitRatio);
             var mergedForwardHorizontal = mergedForward - Vector3.Project(mergedForward, worldUpward);
             var rot = Quaternion.LookRotation(mergedForwardHorizontal);
 
             // Tilt rotation
             var moveUpward = Vector3.Cross(moveForward, Vector3.Cross(worldUpward, moveForward));
             var targetGroundNormal = Kart.IsGrounded ? Kart.GroundNormal : moveUpward;
-            _smoothingGroundNormal = Vector3.Slerp(_smoothingGroundNormal, targetGroundNormal, Time.deltaTime * 1f);
+            _smoothingGroundNormal = Vector3.Slerp(_smoothingGroundNormal, targetGroundNormal, TiltAngleSmoothing * Time.deltaTime);
             var groundForward = Vector3.Cross(rot * Vector3.right, _smoothingGroundNormal);
             var groundForwardHorizontal = groundForward - Vector3.Project(groundForward, worldUpward);
             var tiltRot = Quaternion.LookRotation(new Vector3(0, Vector3.Dot(groundForward, worldUpward), groundForwardHorizontal.magnitude));
