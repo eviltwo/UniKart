@@ -829,15 +829,15 @@ MonoBehaviour:
   EnginePerformances:
     MaxSpeed: 20
     Acceleration: 10
-  WheelDinamicFriction: 0.5
+  WheelDynamicFriction: 0.5
   WheelStaticFriction: 3
   SteeringAngle: 60
   DriftAngleOffset: 50
   DriftAngle: 40
+  DriftFrictionMultiplier: 0.2
   AirSteeringAngleMultiplier: 0.25
   AirSteeringDelay: 0.3
   AirSteeringTransitionDuration: 0.5
-  DriftCentrifugalForce: 0.5
   SlopeAngleLimit: 45
   Gravity: {x: -0, y: -9.81, z: -0}
   JumpOnDrift: 1
@@ -2331,9 +2331,9 @@ MonoBehaviour:
   Kart: {fileID: 538748834}
   OffsetPosition: {x: 0, y: 1.2, z: -2.6}
   OffsetRotation: {x: 15, y: 0, z: 0}
-  TiltDamper: 10
-  TiltRatio: 1
-  TiltRatioInAir: 0.5
+  ChaseDistance: 1
+  KartFitRatio: 0.5
+  TiltAngleSmoothing: 0.5
 --- !u!1 &2139386658
 GameObject:
   m_ObjectHideFlags: 0
