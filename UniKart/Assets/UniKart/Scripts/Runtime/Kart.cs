@@ -255,16 +255,24 @@ namespace UniKart
             ReduceHop(collision);
         }
 
+        /// <summary>
+        /// To prevent the kart from being blown away by small bumps, vertical impact is reduced.
+        /// </summary>
         private void ReduceHop(Collision collision)
         {
+            // Reduce upward impact completely
             var rbUpV = Vector3.Dot(Rigidbody.linearVelocity, _lastGroundNormal);
             var impUpV = Vector3.Dot(collision.impulse, _lastGroundNormal) / Rigidbody.mass;
             var usingUpV = Mathf.Min(rbUpV, impUpV);
-            var threshold = 1f;
-            var reduceRatio = 0.9f;
-            if (usingUpV > threshold)
+            if (usingUpV > 0)
             {
-                Rigidbody.linearVelocity -= _lastGroundNormal * (usingUpV - threshold) * reduceRatio;
+                Rigidbody.linearVelocity -= _lastGroundNormal * usingUpV;
+
+                // Reduce horizontal impact.
+                // Because, keep horizontal speed is important for kart.
+                var usingRatio = Mathf.Clamp01(usingUpV / impUpV);
+                var hrzV = collision.impulse - Vector3.Project(collision.impulse, _lastGroundNormal);
+                Rigidbody.linearVelocity -= hrzV / Rigidbody.mass * usingRatio * 0.5f; // 1.0 is too much
             }
         }
 
