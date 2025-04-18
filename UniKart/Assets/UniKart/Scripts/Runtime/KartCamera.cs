@@ -21,6 +21,8 @@ namespace UniKart
 
         private Vector3 _smoothingGroundNormal;
 
+        private Vector3 _lastCameraUpward;
+
         private void Start()
         {
             _chacingPivot = Kart.transform.transform.position - Kart.transform.forward * ChaseDistance;
@@ -31,6 +33,17 @@ namespace UniKart
             var worldUpward = Vector3.up;
 
             _chacingPivot = Kart.transform.position + (_chacingPivot - Kart.transform.position).normalized * ChaseDistance;
+
+            // Reset smoothing ground normal
+            if (Kart.IsGrounded)
+            {
+                var smoothingGroundNormalAngle = Vector3.Angle(_smoothingGroundNormal, Kart.GroundNormal);
+                var cameraUpwardAngle = Vector3.Angle(_lastCameraUpward, Kart.GroundNormal);
+                if (smoothingGroundNormalAngle > cameraUpwardAngle)
+                {
+                    _smoothingGroundNormal = _lastCameraUpward;
+                }
+            }
 
             // Horizontal rotation
             var moveForward = (Kart.transform.position - _chacingPivot).normalized;
@@ -50,6 +63,8 @@ namespace UniKart
             // Apply
             transform.rotation = rot * Quaternion.Euler(OffsetRotation);
             transform.position = Kart.transform.position + rot * OffsetPosition;
+
+            _lastCameraUpward = rot * Vector3.up;
         }
     }
 }
