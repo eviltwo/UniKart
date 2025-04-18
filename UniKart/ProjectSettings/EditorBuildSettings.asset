@@ -6,7 +6,7 @@ EditorBuildSettings:
   serializedVersion: 2
   m_Scenes:
   - enabled: 1
-    path: Assets/UniKartDemo/Scenes/UniKartDemo.unity
+    path: Assets/UniKart/Samples/Scenes/UniKartSample.unity
     guid: 862a0630c568f274ab8ddf22e2ca69a5
   m_configObjects:
     com.unity.input.settings.actions: {fileID: -944628639613478452, guid: 68ace9b1c3d3e7540a42af3e9419f468, type: 3}

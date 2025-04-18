@@ -1,0 +1,17 @@
+{
+    "name": "com.eviltwo.unikart",
+    "displayName": "UniKart",
+    "version": "0.5.0",
+    "unity": "6000.0",
+    "description": "UniKart is a simple asset that includes a controller for driving a kart. It allows smooth movement over slopes, and supports jumping and drifting.",
+    "author": {
+        "name": "DAIKI(eviltwo)",
+        "url": "https://github.com/eviltwo"
+    },
+
+    "keywords": [
+    ],
+
+    "dependencies": {
+    }
+}
