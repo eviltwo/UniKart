@@ -1,5 +1,5 @@
 # UniKart (In Development)
-UniKart is a simple asset that includes a controller for driving a kart. It allows smooth movement over slopes, and supports jumping and drifting.
+UniKart is a simple asset that includes a controller for driving a kart. It allows smooth movement over slopes, and supports jumping and drifting. Works with Unity 6.
 
 UniKart is open source and available for free under the MIT License on this GitHub repository. If you'd like to support me, please consider visiting my [Asset Store](https://assetstore.unity.com/publishers/12117) page.
 
