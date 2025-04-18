@@ -22,6 +22,11 @@ UniKart is open source and available for free under the MIT License on this GitH
 
 ![kart_collider](https://github.com/user-attachments/assets/cf3ffd87-918f-46f4-98a3-2d1ff827880a)
 
+# Install with UPM
+```
+https://github.com/eviltwo/UniKart.git?path=UniKart/Assets/UniKart
+```
+
 # Support My Work
 I’m a solo indie developer. Your financial support is greatly appreciated and helps me continue working on this project.
 - [Asset Store](https://assetstore.unity.com/publishers/12117)
