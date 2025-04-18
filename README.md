@@ -3,7 +3,7 @@ UniKart is a simple asset that includes a controller for driving a kart. It allo
 
 UniKart is open source and available for free under the MIT License on this GitHub repository. If you'd like to support me, please consider visiting my [Asset Store](https://assetstore.unity.com/publishers/12117) page.
 
-![UniKart](https://github.com/user-attachments/assets/f806467f-59d5-4e8c-9eb6-361582fa4dee)
+![UniKart](https://github.com/user-attachments/assets/c714b856-5db4-46be-a484-2cf3b0862fc7)
 
 # Features
 - **Basic Actions**
