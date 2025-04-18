@@ -12,35 +12,40 @@ namespace UniKart
 
         public KartInput KartInput;
 
-        [Header("Performances")]
-        public KartEngine.Performances EnginePerformances;
+        [Header("Basic Settings")]
+        public float MaxSpeed = 20f;
 
-        public float WheelDynamicFriction = 0.8f;
+        public float Acceleration = 10f;
 
-        public float WheelStaticFriction = 0.8f;
+        public float SteeringAngle = 60f;
 
-        public float SteeringAngle = 90f;
+        public float DriftAngleMin = 10f;
 
-        public float DriftAngleOffset = 50f;
+        public float DriftAngleMax = 90f;
 
-        public float DriftAngle = 70f;
+        public float SlopeAngleLimit = 45f;
+
+        public bool JumpOnDrift = true;
+
+        public float JumpForce = 2f;
+
+        [Header("Advanced Settings")]
+        public float WheelDynamicFriction = 0.5f;
+
+        public float WheelStaticFriction = 3.0f;
 
         [Range(0, 1)]
         public float DriftFrictionMultiplier = 0.2f;
 
         public float AirSteeringAngleMultiplier = 0.25f;
 
-        public float AirSteeringDelay = 0.5f;
+        public float AirSteeringDelay = 0.3f;
 
         public float AirSteeringTransitionDuration = 0.5f;
 
-        public float SlopeAngleLimit = 45f;
+        public bool OverrideGravity = true;
 
         public Vector3 Gravity = Vector3.up * -9.81f;
-
-        public bool JumpOnDrift = true;
-
-        public float JumpForce = 2f;
 
         private KartEngine _engine;
 
@@ -85,7 +90,7 @@ namespace UniKart
 
         private void Awake()
         {
-            _engine = new KartEngine(EnginePerformances);
+            _engine = new KartEngine();
             _groundDetector = new KartGroundDetector(Collider);
         }
 
@@ -104,6 +109,9 @@ namespace UniKart
             var steering = KartInput.GetSteering();
             var drift = KartInput.GetDrift();
 
+            _engine.MaxSpeed = MaxSpeed;
+            _engine.Acceleration = Acceleration;
+
             if (_isBoosting)
             {
                 throttle = 1;
@@ -116,8 +124,9 @@ namespace UniKart
                 }
             }
 
-            if (!Rigidbody.useGravity)
+            if (OverrideGravity)
             {
+                Rigidbody.useGravity = false;
                 Rigidbody.AddForce(Gravity, ForceMode.Acceleration);
             }
 
@@ -196,7 +205,7 @@ namespace UniKart
 
             var deltaTime = Time.fixedDeltaTime;
             var steering = KartInput.GetSteering();
-            var angle = _isDrifting ? DriftAngleOffset * _driftDirection + DriftAngle * steering : SteeringAngle * steering;
+            var angle = _isDrifting ? Mathf.Lerp(DriftAngleMin, DriftAngleMax, Mathf.InverseLerp(-1, 1, steering * _driftDirection)) * _driftDirection : SteeringAngle * steering;
             if (!_isGrounded)
             {
                 _airElapsedTime += deltaTime;
@@ -365,15 +374,9 @@ namespace UniKart
 
     public class KartEngine
     {
-        [Serializable]
-        public class Performances
-        {
-            public float MaxSpeed = 30f;
+        public float MaxSpeed { get; set; } = 20f;
 
-            public float Acceleration = 10f;
-        }
-
-        public Performances EnginePerformances { get; set; }
+        public float Acceleration { get; set; } = 10f;
 
         public float AccelerationMultiplier { get; set; } = 1.0f;
 
@@ -385,11 +388,6 @@ namespace UniKart
 
         public float Speed => _speed;
 
-        public KartEngine(Performances enginePerformances)
-        {
-            EnginePerformances = enginePerformances;
-        }
-
         public void SetThrottle(float throttle)
         {
             _throttle = throttle;
@@ -397,7 +395,7 @@ namespace UniKart
 
         public void Update(float deltaTime)
         {
-            _speed = Mathf.MoveTowards(_speed, EnginePerformances.MaxSpeed * MaxSpeedMultiplier * _throttle, EnginePerformances.Acceleration * AccelerationMultiplier * deltaTime);
+            _speed = Mathf.MoveTowards(_speed, MaxSpeed * MaxSpeedMultiplier * _throttle, Acceleration * AccelerationMultiplier * deltaTime);
         }
     }
 }
