@@ -268,6 +268,19 @@ namespace UniKart
             {
                 Rigidbody.linearVelocity -= _lastGroundNormal * usingUpV;
 
+                // Rewind vertical position
+                var contactCount = collision.contactCount;
+                for (int i = 0; i < contactCount; i++)
+                {
+                    var contact = collision.GetContact(i);
+                    Debug.DrawRay(contact.point, contact.normal, Color.red, 5f);
+                    var spacingV = Vector3.Dot(Rigidbody.position - contact.point, _lastGroundNormal) - Collider.radius;
+                    if (spacingV > 0)
+                    {
+                        Rigidbody.position -= _lastGroundNormal * spacingV;
+                    }
+                }
+
                 // Reduce horizontal impact.
                 // Because, keep horizontal speed is important for kart.
                 var usingRatio = Mathf.Clamp01(usingUpV / impUpV);
