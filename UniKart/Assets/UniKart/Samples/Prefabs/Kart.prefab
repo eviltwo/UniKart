@@ -256,12 +256,13 @@ MonoBehaviour:
   RootRotationSpeed: 10
   Body: {fileID: 3379081010355306970}
   BodyVelocityModifier: 0.5
-  BodySpringLength: 0.3
-  BodySpringLengthMin: 0.1
-  BodySpringLengthMax: 1.4
+  BodySpringLength: 0.5
+  BodySpringLengthMin: 0.4
+  BodySpringLengthMax: 1
   BodySpringAngleMax: 5
   BodySpringStrength: 100
   BodySpringDamper: 10
+  BodyOffset: -0.5
   JumpDuration: 0.4
   JumpHeight: 0.2
   Wheels:

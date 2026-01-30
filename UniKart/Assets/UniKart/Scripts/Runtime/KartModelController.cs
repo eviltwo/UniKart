@@ -16,15 +16,17 @@ namespace UniKart
 
         public float BodySpringLength = 0.5f;
 
-        public float BodySpringLengthMin = 0.5f;
+        public float BodySpringLengthMin = 0.4f;
 
-        public float BodySpringLengthMax = 1.5f;
+        public float BodySpringLengthMax = 1.0f;
 
         public float BodySpringAngleMax = 30f;
 
         public float BodySpringStrength = 0.5f;
 
         public float BodySpringDamper = 0.5f;
+        
+        public float BodyOffset = -0.5f;
 
         public float JumpDuration = 0.2f;
 
@@ -45,12 +47,14 @@ namespace UniKart
         private Quaternion _defaultLocalRotation = Quaternion.identity;
 
         private Quaternion _animatedRootRotation = Quaternion.identity;
+        
+        private Vector3 _bodyRelativePosition;
+        
+        private Vector3[] _wheelRelativePositions;
 
         private float _rootSteeringAngle;
 
         private float _wheelSteeringAngle;
-
-        private Vector3 _defaultBodyLocalPosition;
 
         private Vector3 _bodyPivot;
 
@@ -65,7 +69,14 @@ namespace UniKart
         private void Start()
         {
             _defaultLocalRotation = Root.localRotation;
-            _defaultBodyLocalPosition = Body.localPosition;
+            _bodyRelativePosition = GetRelativePositionWithoutScale(Root, Body.position);
+            _wheelRelativePositions = new Vector3[Wheels.Length];
+            for (var i = 0; i < Wheels.Length; i++)
+            {
+                var p = GetRelativePositionWithoutScale(Root, Wheels[i].Model.position);
+                p.y = 0;
+                _wheelRelativePositions[i] = p;
+            }
         }
 
         private void OnEnable()
@@ -126,8 +137,9 @@ namespace UniKart
             _wheelSteeringAngle = Mathf.MoveTowards(_wheelSteeringAngle, Kart.KartInput.GetSteering() * 20, 180 * Time.deltaTime);
             var wheelRot = Quaternion.AngleAxis(_wheelSteeringAngle, Vector3.up);
             var rootPlane = new Plane(Kart.GroundNormal, floorPoint);
-            foreach (var wheel in Wheels)
+            for (var i = 0; i < Wheels.Length; i++)
             {
+                var wheel = Wheels[i];
                 if (wheel.IsSteerable)
                 {
                     wheel.Model.localRotation = wheelRot;
@@ -135,38 +147,35 @@ namespace UniKart
 
                 if (wheel.IsFront)
                 {
-                    var defaultLocalPos = wheel.Model.localPosition;
-                    defaultLocalPos.y = wheel.Radius;
-                    var defaultPos = wheel.Model.parent.TransformPoint(defaultLocalPos);
+                    var wheelZeroPos = GetWorldPositionWithoutScale(Root, _wheelRelativePositions[i]) + Root.up * wheel.Radius;
                     const float margin = 1f;
-                    if (rootPlane.Raycast(new Ray(defaultPos + Root.up * margin, -Root.up), out var distance))
+                    if (rootPlane.Raycast(new Ray(wheelZeroPos + Root.up * margin, -Root.up), out var distance))
                     {
                         var height = margin - distance + wheel.Radius;
                         if (height > 0)
                         {
-                            var wheelLocalPos = defaultLocalPos;
-                            wheelLocalPos.y = wheel.Radius + height;
-                            wheel.Model.localPosition = wheelLocalPos;
+                            wheel.Model.position = wheelZeroPos + Root.up * height;
                         }
                         else
                         {
-                            wheel.Model.position = defaultPos;
+                            wheel.Model.position = wheelZeroPos;
                         }
                     }
                     else
                     {
-                        wheel.Model.position = defaultPos;
+                        wheel.Model.position = wheelZeroPos;
                     }
+                    
+                    wheel.Model.position = wheelZeroPos;
                 }
             }
 
             // Body animation
             {
-
-                var worldVelocity = Kart.Rigidbody.GetPointVelocity(Vector3.up * BodySpringLength);
+                var worldVelocity = Kart.Rigidbody.GetPointVelocity(Root.position + Root.up * BodySpringLength);
                 var velocityDiff = worldVelocity - _bodyLastVelocity;
                 _bodyLastVelocity = worldVelocity;
-                var localVelocityDiff = Quaternion.Inverse(Body.parent.rotation) * velocityDiff * BodyVelocityModifier;
+                var localVelocityDiff = Quaternion.Inverse(Root.rotation) * velocityDiff * BodyVelocityModifier;
                 _bodyVelocity -= localVelocityDiff;
 
                 // Spring
@@ -190,17 +199,29 @@ namespace UniKart
                 }
 
                 // Clamp length
-                var newLength = Mathf.Clamp(_bodyPivot.magnitude, BodySpringLengthMin, BodySpringLengthMax);
-                _bodyPivot = _bodyPivot.normalized * newLength;
+                {
+                    var newLength = Mathf.Clamp(_bodyPivot.magnitude, BodySpringLengthMin, BodySpringLengthMax);
+                    _bodyPivot = _bodyPivot.normalized * newLength;
+                }
 
                 // Move velocity
                 var diff = _bodyPivot - prevPivot;
-                _bodyVelocity += diff;
+                _bodyVelocity -= Vector3.Project(_bodyVelocity, -diff.normalized);
 
                 // Apply
-                Body.localPosition = _bodyPivot;
+                Body.position = GetWorldPositionWithoutScale(Root, _bodyRelativePosition + _bodyPivot + Vector3.up * BodyOffset);
                 Body.localRotation = Quaternion.FromToRotation(Vector3.up, _bodyPivot);
             }
+        }
+
+        private static Vector3 GetRelativePositionWithoutScale(Transform parent, Vector3 worldPosition)
+        {
+            return Quaternion.Inverse(parent.rotation) * (worldPosition - parent.position);
+        }
+
+        private static Vector3 GetWorldPositionWithoutScale(Transform parent, Vector3 relativePosition)
+        {
+            return parent.position + parent.rotation * relativePosition;
         }
 
         private void OnJump()

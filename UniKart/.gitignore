@@ -73,3 +73,6 @@ sysinfo.txt
 # Temporary files for addressable assets.
 /[Aa]ssets/AddressableAssetsData/link.xml
 /[Aa]ssets/AddressableAssetsData/link.xml.meta
+
+# Rider settings
+/.idea/*
