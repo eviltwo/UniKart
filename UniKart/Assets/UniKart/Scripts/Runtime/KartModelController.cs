@@ -49,8 +49,16 @@ namespace UniKart
         private Quaternion _animatedRootRotation = Quaternion.identity;
         
         private Vector3 _bodyRelativePosition;
-        
-        private Vector3[] _wheelRelativePositions;
+
+        private class WheelState
+        {
+            public Vector3 WheelRelativePosition;
+            public float ForwardAngle;
+        }
+
+        private WheelState[] _wheelStates;
+
+        private float _lastKartGroundedSpeed;
 
         private float _rootSteeringAngle;
 
@@ -70,12 +78,13 @@ namespace UniKart
         {
             _defaultLocalRotation = Root.localRotation;
             _bodyRelativePosition = GetRelativePositionWithoutScale(Root, Body.position);
-            _wheelRelativePositions = new Vector3[Wheels.Length];
+            _wheelStates = new WheelState[Wheels.Length];
             for (var i = 0; i < Wheels.Length; i++)
             {
+                _wheelStates[i] = new WheelState();
                 var p = GetRelativePositionWithoutScale(Root, Wheels[i].Model.position);
                 p.y = 0;
-                _wheelRelativePositions[i] = p;
+                _wheelStates[i].WheelRelativePosition = p;
             }
         }
 
@@ -91,6 +100,12 @@ namespace UniKart
 
         private void LateUpdate()
         {
+            var kartSpeed = Kart.EngineSpeed;
+            if (Kart.IsGrounded)
+            {
+                _lastKartGroundedSpeed = Vector3.Dot(Kart.Rigidbody.linearVelocity, Kart.transform.forward);
+            }
+            
             // Jump
             var jumpOffset = 0f;
             if (_isJumping)
@@ -140,14 +155,19 @@ namespace UniKart
             for (var i = 0; i < Wheels.Length; i++)
             {
                 var wheel = Wheels[i];
+                var wheelState = _wheelStates[i];
                 if (wheel.IsSteerable)
                 {
                     wheel.Model.localRotation = wheelRot;
                 }
+                else
+                {
+                    wheel.Model.localRotation = Quaternion.identity;
+                }
 
                 if (wheel.IsFront)
                 {
-                    var wheelZeroPos = GetWorldPositionWithoutScale(Root, _wheelRelativePositions[i]) + Root.up * wheel.Radius;
+                    var wheelZeroPos = GetWorldPositionWithoutScale(Root, _wheelStates[i].WheelRelativePosition) + Root.up * wheel.Radius;
                     const float margin = 1f;
                     if (rootPlane.Raycast(new Ray(wheelZeroPos + Root.up * margin, -Root.up), out var distance))
                     {
@@ -168,6 +188,18 @@ namespace UniKart
                     
                     wheel.Model.position = wheelZeroPos;
                 }
+
+                if (wheel.IsDriveable)
+                {
+                    wheelState.ForwardAngle += GetAngle(kartSpeed, wheel.Radius) * Time.deltaTime;
+                }
+                else
+                {
+                    wheelState.ForwardAngle += GetAngle(_lastKartGroundedSpeed, wheel.Radius) * Time.deltaTime;
+                }
+                
+                wheelState.ForwardAngle %= 360;
+                wheel.Model.localRotation = wheel.Model.localRotation * Quaternion.AngleAxis(wheelState.ForwardAngle, Vector3.right);
             }
 
             // Body animation
@@ -228,6 +260,11 @@ namespace UniKart
         {
             _isJumping = true;
             _jumpElapsedTime = 0;
+        }
+
+        private static float GetAngle(float distance, float radius)
+        {
+            return distance / radius * Mathf.Rad2Deg;
         }
 
         private void OnDrawGizmosSelected()

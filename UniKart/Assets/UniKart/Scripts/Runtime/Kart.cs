@@ -84,6 +84,8 @@ namespace UniKart
         private float _boostDuration;
 
         public bool IsBoosting => _isBoosting;
+        
+        public float EngineSpeed => _engine.Speed;
 
         private FrictionCalculator _forwardFrictionCalc = new FrictionCalculator();
         private FrictionCalculator _sidewaysFrictionCalc = new FrictionCalculator();
@@ -155,8 +157,7 @@ namespace UniKart
                 _forwardFrictionCalc.DynamicFriction = WheelDynamicFriction;
                 _forwardFrictionCalc.StaticFriction = WheelStaticFriction;
                 _forwardFrictionCalc.Update(speedDiff);
-                Rigidbody.AddForce(forward * _forwardFrictionCalc.FrictionVelocity * Rigidbody.mass, ForceMode.Acceleration);
-
+                Rigidbody.AddForce(forward * (_forwardFrictionCalc.FrictionVelocity * Rigidbody.mass), ForceMode.Acceleration);
 
                 // sideways speed
                 var sideways = Rigidbody.rotation * Vector3.right;
@@ -165,7 +166,7 @@ namespace UniKart
                 _sidewaysFrictionCalc.DynamicFriction = WheelDynamicFriction * (_isDrifting ? DriftFrictionMultiplier : 1f);
                 _sidewaysFrictionCalc.StaticFriction = WheelStaticFriction * (_isDrifting ? 0f : 1f);
                 _sidewaysFrictionCalc.Update(sidewaysDiff);
-                Rigidbody.AddForce(sideways * _sidewaysFrictionCalc.FrictionVelocity * Rigidbody.mass, ForceMode.Acceleration);
+                Rigidbody.AddForce(sideways * (_sidewaysFrictionCalc.FrictionVelocity * Rigidbody.mass), ForceMode.Acceleration);
             }
 
             // Jump

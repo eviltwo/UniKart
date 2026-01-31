@@ -269,12 +269,12 @@ MonoBehaviour:
   - Model: {fileID: 1715506790950538926}
     Radius: 0.3
     IsSteerable: 1
-    IsDriveable: 1
+    IsDriveable: 0
     IsFront: 1
   - Model: {fileID: 8444179776013111923}
     Radius: 0.3
     IsSteerable: 1
-    IsDriveable: 1
+    IsDriveable: 0
     IsFront: 1
   - Model: {fileID: 8412796128734058063}
     Radius: 0.3
