@@ -61,8 +61,6 @@ namespace UniKart
 
         public Vector3 GroundNormal => _lastGroundNormal;
 
-        private bool _isFixedUpdateFrame;
-
         private bool _isDriftInputLast;
 
         private bool _isJumpRequired;
@@ -98,7 +96,6 @@ namespace UniKart
 
         private void FixedUpdate()
         {
-            _isFixedUpdateFrame = true;
             if (KartInput == null)
             {
                 return;
@@ -193,47 +190,40 @@ namespace UniKart
                 _isDrifting = true;
                 _driftDirection = Mathf.Sign(steering);
             }
+            
+            // Rotate
+            {
+                var targetAngularVelocity = Vector3.zero;
+                
+                // Steering
+                var angle = _isDrifting ? Mathf.Lerp(DriftAngleMin, DriftAngleMax, Mathf.InverseLerp(-1, 1, steering * _driftDirection)) * _driftDirection : SteeringAngle * steering;
+                if (!_isGrounded)
+                {
+                    _airElapsedTime += deltaTime;
+                    var multiplier = Mathf.Lerp(1f, AirSteeringAngleMultiplier, (_airElapsedTime - AirSteeringDelay) / AirSteeringTransitionDuration);
+                    angle *= multiplier;
+                }
+                else
+                {
+                    _airElapsedTime = 0f;
+                }
+
+                targetAngularVelocity += Rigidbody.rotation * Vector3.up * (angle * Mathf.Deg2Rad);
+
+                // Fit ground normal
+                var axis = Vector3.Cross(_lastGroundNormal, _lastGroundNormal - Rigidbody.rotation * Vector3.up).normalized;
+                targetAngularVelocity += axis * (Vector3.SignedAngle(Rigidbody.rotation * Vector3.up, _lastGroundNormal, axis) * Mathf.Deg2Rad) / deltaTime;
+
+                // Apply angular velocity
+                var diffAngularVelocity = targetAngularVelocity - Rigidbody.angularVelocity;
+                Rigidbody.AddTorque(diffAngularVelocity, ForceMode.VelocityChange);
+            }
 
             _lastGroundNormal = groundNormal;
         }
 
-        private void AfterFixedUpdate()
-        {
-            if (KartInput == null)
-            {
-                return;
-            }
-
-            var deltaTime = Time.fixedDeltaTime;
-            var steering = KartInput.GetSteering();
-            var angle = _isDrifting ? Mathf.Lerp(DriftAngleMin, DriftAngleMax, Mathf.InverseLerp(-1, 1, steering * _driftDirection)) * _driftDirection : SteeringAngle * steering;
-            if (!_isGrounded)
-            {
-                _airElapsedTime += deltaTime;
-                var multiplier = Mathf.Lerp(1f, AirSteeringAngleMultiplier, (_airElapsedTime - AirSteeringDelay) / AirSteeringTransitionDuration);
-                angle *= multiplier;
-            }
-            else
-            {
-                _airElapsedTime = 0f;
-            }
-
-            var deltaAngle = angle * deltaTime;
-            var rotation = Rigidbody.rotation;
-            rotation = Quaternion.FromToRotation(rotation * Vector3.up, _lastGroundNormal) * rotation;
-            rotation = rotation * Quaternion.AngleAxis(deltaAngle, Vector3.up);
-
-            Rigidbody.rotation = rotation;
-        }
-
         private void Update()
         {
-            if (_isFixedUpdateFrame)
-            {
-                _isFixedUpdateFrame = false;
-                AfterFixedUpdate();
-            }
-
             _groundDetector.SlopeAngleLimit = SlopeAngleLimit;
 
             if (JumpOnDrift)
@@ -277,7 +267,7 @@ namespace UniKart
                     var spacingV = Vector3.Dot(Rigidbody.position - contact.point, _lastGroundNormal) - Collider.radius;
                     if (spacingV > 0)
                     {
-                        Rigidbody.position -= _lastGroundNormal * spacingV;
+                        Rigidbody.MovePosition(Rigidbody.position - _lastGroundNormal * spacingV);
                     }
                 }
 
@@ -285,7 +275,7 @@ namespace UniKart
                 // Because, keep horizontal speed is important for kart.
                 var usingRatio = Mathf.Clamp01(usingUpV / impUpV);
                 var hrzV = collision.impulse - Vector3.Project(collision.impulse, _lastGroundNormal);
-                Rigidbody.linearVelocity -= hrzV / Rigidbody.mass * usingRatio * 0.5f; // 1.0 is too much
+                Rigidbody.AddForce(-hrzV / Rigidbody.mass * usingRatio * 0.5f, ForceMode.VelocityChange); // 1.0 is too much
             }
         }
 
